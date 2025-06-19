@@ -14,7 +14,7 @@ export function UserContextProvider({children}) {
     // Check if User is logged in by submitting GET form to /profile
     useEffect(() => {
         axios.get('/profile').then(response => {
-            setId(response.data.userID);
+            setId(response.data.userId);
             setUsername(response.data.username);
         });
     }, []);
