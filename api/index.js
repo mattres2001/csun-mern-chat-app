@@ -91,6 +91,10 @@ app.get('/profile', (req, res) => {
     }
 });
 
+app.post('/logout', (req,res) => {
+    res.cookie('token', '', {sameSite:'none', secure:true}).json('ok');
+});
+
 // Form submitted from RegisterAndLoginForm.jsx when user logs in
 app.post('/login', async (req, res) => {
     // Retrieve username and password input by user
@@ -151,8 +155,33 @@ app.post('/register', async (req, res) => {
 
 const server = app.listen(4040);
 
+    function notifyAboutOnlinePeople() {
+        [...wss.clients].forEach(client => {
+            client.send(JSON.stringify({
+                online: [...wss.clients].map(c => ({userId:c.userId,username:c.username})), 
+            }));
+        });
+    }
+
 const wss = new ws.WebSocketServer({server});
 wss.on('connection', (connection, req)=> {
+
+    connection.isAlive = true;
+
+    connection.timer = setInterval(() => {
+        connection.ping();
+        connection.deathTimer = setTimeout(() => {
+            connection.isAlive = false;
+            clearInterval(connection.timer);
+            connection.terminate();
+            notifyAboutOnlinePeople();
+            console.log('dead');
+        }, 1000);
+    }, 5000);
+
+    connection.on('pong', () => {
+        clearTimeout(connection.deathTimer);
+    });
 
     //read username and id from the cookie for this connection
     const cookies = req.headers.cookie;
@@ -192,14 +221,10 @@ wss.on('connection', (connection, req)=> {
     });
 
     //notify everyone about online people (when someone connects)
-    [...wss.clients].forEach(client => {
-        client.send(JSON.stringify({
-            online: [...wss.clients].map(c => ({userId:c.userId,username:c.username})), 
-        }));
-    });
+    notifyAboutOnlinePeople();
 });
  
 
 // Database password: ag5TTUnOEs8jY2Bp
 // Host server on localhost:4040
-app.listen(4040);
+//app.listen(4040);
