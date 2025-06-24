@@ -7,12 +7,33 @@ export default function RegisterAndLoginForm() {
     const [password, setPassword] = useState('');
     const [isLoginOrRegister, setIsLoginOrRegister] = useState('register');
     const {setUsername:setLoggedInUsername, setId} = useContext(UserContext);
+  
+  
+    function isCSUNemail(email){
+        const emailRequire = /^[a-zA-Z0-9._%+-]+@my.csun\.edu$/;
+        return emailRequire.test(email);
+    }
+  
     async function handleSubmit(ev) {
         ev.preventDefault();
+
+        if(!isCSUNemail(username)){
+            alert("Please use a valid CSUN account.");
+            return;
+        }
+
         const url = isLoginOrRegister === 'register' ? 'register' : 'login';
+
+        try{
         const {data} = await axios.post(url, {username, password});
         setLoggedInUsername(username);
         setId(data.id);
+        }
+
+        catch(error){
+            console.error("Error during submission: ", error);
+        };
+        
     }
 
     return (
