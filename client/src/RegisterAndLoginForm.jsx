@@ -7,14 +7,18 @@ export default function RegisterAndLoginForm() {
     const [password, setPassword] = useState('');
     const [isLoginOrRegister, setIsLoginOrRegister] = useState('register');
     const {setUsername:setLoggedInUsername, setId} = useContext(UserContext);
+
   
   
     function isCSUNemail(email){
         const emailRequire = /^[a-zA-Z0-9._%+-]+@my.csun\.edu$/;
         return emailRequire.test(email);
     }
-  
+ 
+
+    // Event when user submits credentials
     async function handleSubmit(ev) {
+        // Prevent page from refreshing
         ev.preventDefault();
 
         if(!isCSUNemail(username)){
@@ -22,6 +26,10 @@ export default function RegisterAndLoginForm() {
             return;
         }
 
+
+        // Use axios to send HTTP request to backend /register or /login and 
+        //  responds with a JWT cookie and JSON. App saves username and id globally
+        //  using UserContext. User is then automatically 'logged in' on front end
         const url = isLoginOrRegister === 'register' ? 'register' : 'login';
 
         try{
@@ -36,6 +44,7 @@ export default function RegisterAndLoginForm() {
         
     }
 
+    // Login/Register page HTML/CSS
     return (
         <div className="bg-blue-50 h-screen flex items-center">
             <form className="w-64 mx-auto mb-12" onSubmit={handleSubmit}>

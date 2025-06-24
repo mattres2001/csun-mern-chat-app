@@ -12,6 +12,7 @@ export default function Routes() {
     }
 
     return (
+        // If not logged in, route to RegisterAndLoginForm
         <RegisterAndLoginForm/>
     );
 }
