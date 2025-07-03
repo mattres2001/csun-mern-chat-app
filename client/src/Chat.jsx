@@ -5,6 +5,7 @@ import { UserContext } from "./UserContext";
 import uniqBy from "lodash/uniqBy";
 import axios  from "axios";
 import Contact from "./Contact";
+import './indexTwo.css'
 
 
 export default function Chat(){
