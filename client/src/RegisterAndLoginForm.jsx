@@ -5,7 +5,7 @@ import {UserContext} from "./UserContext.jsx";
 export default function RegisterAndLoginForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoginOrRegister, setIsLoginOrRegister] = useState('register');
+    const [isLoginOrRegister, setIsLoginOrRegister] = useState('login');
     const {setUsername:setLoggedInUsername, setId} = useContext(UserContext);
 
   
@@ -65,7 +65,7 @@ export default function RegisterAndLoginForm() {
                     {isLoginOrRegister === 'register' && (
                         <div>
                         Already a member? 
-                        <button onClick={() => setIsLoginOrRegister('login')}>
+                        <button className = "ml-1" onClick={() => setIsLoginOrRegister('login')}>
                             Login here
                         </button>
                         </div>    
