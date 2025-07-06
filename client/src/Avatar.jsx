@@ -1,4 +1,6 @@
 export default function Avatar({userId,username, online}){
+    username = username || '';
+
     const colors =['bg-teal-200', 'bg-red-200', 'bg-green-200', 'bg-purple-200',
                     'bg-blue-200', 'bg-yellow-200'];
     const userIdBase10 = parseInt(userId,16);
