@@ -34,9 +34,14 @@ export default function Chat(){
     }
     function showOnlinePeople(peopleArray){   //
         const people = {};
+        // peopleArray.forEach(({userId, username}) => {
+        //     people[userId] = username;
+        // });    
         peopleArray.forEach(({userId, username}) => {
-            people[userId] = username;
-        });    
+            if (userId && username && username.trim() !== '.') {
+                people[userId] = username;
+            }
+        });
         setOnlinePeople(people);
     }
     function handleMessage(ev){        
@@ -44,8 +49,32 @@ export default function Chat(){
         console.log({ev,messageData});
         if('online' in messageData){
             showOnlinePeople(messageData.online);
-        } else if ('text' in messageData) {
-            setMessages(prev =>([...prev, {...messageData}]));
+        } else if ('text' in messageData || 'file' in messageData) {
+
+            const isForCurrentConversation =
+                messageData.sender === selectedUserId ||
+                messageData.recipient === selectedUserId;
+
+            if (isForCurrentConversation) {
+                setMessages(prev => [...prev, messageData]);
+            }
+
+            const isNewMessageFromOther = 
+                messageData.sender !== id &&
+                messageData.sender !== selectedUserId;
+
+            if (isNewMessageFromOther) {
+                console.log('New message from', messageData.sender);
+            }
+
+            // const isRelevant = messageData.sender === selectedUserId || messageData.recipient === selectedUserId;
+            // if (isRelevant) {
+            //     setMessages(prev => ([...prev, messageData]));
+            // }
+            // if (messageData.sender === selectedUserId) {
+            //     setMessages(prev =>([...prev, {...messageData}]));
+            // }
+            
         }
     }
     function logout() {
@@ -58,20 +87,50 @@ export default function Chat(){
           setUsername(null);
         });
       }      
-    function sendMessage(ev) {
-        ev.preventDefault();
+    function sendMessage(ev, file = null) {
+        if (ev) ev.preventDefault();
+
+        // const payload = {
+        //     recipient: selectedUserId,
+        //     text: newMessageText,
+        //     file,
+        // };
+        // console.log('Sending message:', payload);
+        // ws.send(JSON.stringify(payload));
+
         ws.send(JSON.stringify({
                 recipient: selectedUserId,
                 text: newMessageText,
+                file, 
         }));
-        setNewMessageText('');
-        setMessages(prev => ([...prev, {
-            text: newMessageText, 
-            sender: id,
-            recipient: selectedUserId,
-            _id: Date.now(),
-        }]));
+        if (file) {
+            axios.get('/messages/' + selectedUserId).then(res => {
+                setMessages(res.data);
+            });
+        } else {    
+            setNewMessageText('');
+            setMessages(prev => ([...prev, {
+                text: newMessageText, 
+                sender: id,
+                recipient: selectedUserId,
+                _id: Date.now(),
+            }]));
+        }
     }
+    function sendFile(ev) {
+        const reader = new FileReader();
+        reader.readAsDataURL(ev.target.files[0]);
+        reader.onload = () => {
+            sendMessage(null, {
+                name: ev.target.files[0].name,
+                data: reader.result,
+            });
+        };
+        reader.onerror = (err) => {
+            console.error("❌ FileReader error", err);
+        };
+    }
+
 
     useEffect(() => {
         const div = divUnderMessages.current;
@@ -107,12 +166,13 @@ export default function Chat(){
       );
       
     
+      
 
     const messagesWithoutDupes = uniqBy(messages, '_id'); 
     
     return (  
         <div className="flex h-screen"> 
-            <div className="bg-white w-1/3 flex flex-col">
+            <div className="overflow-y-auto bg-white w-1/3 flex flex-col">
             <div className="flex-grow">
             <Logo />
             {Object.keys(onlinePeopleExclOurUser).map(userId => (
@@ -163,6 +223,16 @@ export default function Chat(){
                                     <div key = {message._id} className={(message.sender === id ? 'text-right': 'text-left')}>
                                         <div className={"text-left inline-block p-2 my-2 rounded-md text-sm " +(message.sender === id ? 'bg-[#CE1126] text-white':'bg-white text-gray-500')}>
                                             {message.text}
+                                            {message.file && (
+                                                <div className="">
+                                                    <a target='_blank' className="flex items-center gap-1 border-b" href={axios.defaults.baseURL + '/uploads/' + message.file}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                                                        </svg>
+                                                        {message.file}
+                                                    </a>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -178,6 +248,15 @@ export default function Chat(){
                             onChange={ev => setNewMessageText(ev.target.value)}
                             placeholder= "Type your message here"
                             className="bg-white flex-grow border rounded-sm p-2" />
+
+                        <label type="button" className='bg-blue-100 p-2 text-gray-600 cursor-pointer rounded-sm border border-blue-300'>
+                            <input type="file" className="hidden" onChange={sendFile}/>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                            </svg>
+                        </label>
+
+
                         <button type="submit" className = "bg-blue-500 p-2 text-white rounded-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
