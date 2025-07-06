@@ -1,8 +1,6 @@
 # csun-mern-chat-app
 Real-time MERN-stack chat app designed for and by CSUN students
 
-Sprint #2 Done
-
 To access, first go into terminal and initialize the frontend
 
 For frontend: cd client -> yarn install -> yarn dev
@@ -19,7 +17,6 @@ You should open two webpages to test the chat feature, preferably on two differe
 
 You should inspect element on both and check console/network when needed, in case you have any bugs
 
-I stopped my part of the video at 4:14:00 (sorry for dipping into your work)
 # Usage
 In terminal, run 'npm install'
 To run frontend client, cd to './client' and run 'yarn dev' in terminal
