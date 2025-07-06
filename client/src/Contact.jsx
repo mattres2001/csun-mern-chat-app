@@ -1,6 +1,8 @@
 import Avatar from "./Avatar.jsx";
 
 export default function Contact({id, username, onClick, selected, online}) {
+    
+    console.log('Contact props:', { online, username, id });
     return (
         <div key = {id} onClick={() => onClick(id)} 
                             className={"border-b border-gray-100 flex items-center gap-2 cursor-pointer " + (selected ? 'bg-blue-50' : '')}> 

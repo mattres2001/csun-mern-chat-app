@@ -9,6 +9,12 @@ const User = require('./models/User');
 const Message =  require('./models/Message');
 const ws = require('ws');
 
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
+
+
 // Dotenv (.env) files contain sensitive keys
 dotenv.config();
 
@@ -117,6 +123,44 @@ app.post('/login', async (req, res) => {
                 });
             });
         }
+    }
+});
+
+app.post('/google-login', async (req, res) => {
+    console.log('Received token from frontend:', req.body.token);
+    const { token } = req.body;
+    try {
+        const ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+
+        const email = payload.email;
+        const name = payload.name;
+
+        // Enforce CSUN email check
+        if (!email.endsWith('@my.csun.edu')) {
+            return res.status(403).json({ error: 'Only CSUN emails allowed.' });
+        }
+
+        // Check if user exists, otherwise create
+        let user = await User.findOne({ username: email });
+        if (!user) {
+            user = await User.create({ username: email, password: '' });
+        }
+    
+        // Generate JWT and set cookie
+        jwt.sign({ userId: user._id, username: user.username }, jwtSecret, {}, (err, token) => {
+            if (err) throw err;
+            res.cookie('token', token, { sameSite: 'none', secure: true}).json({
+                userId: user._id,
+                username: user.username
+            });
+        });
+    } catch (err) {
+        console.error('Google login error: ', err);
+        res.status(401).json({ error: 'Invalid Google token' })
     }
 });
 

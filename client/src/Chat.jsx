@@ -34,6 +34,9 @@ export default function Chat(){
     function showOnlinePeople(peopleArray){   //
         const people = {};
         peopleArray.forEach(({userId, username}) => {
+            // if (userId && username) {
+            //     people[userId] = username;
+            // }
             people[userId] = username;
         });    
         setOnlinePeople(people);
@@ -109,19 +112,20 @@ export default function Chat(){
 
     const messagesWithoutDupes = uniqBy(messages, '_id'); 
     
-    return (  
+    return ( 
         <div className="flex h-screen"> 
             <div className="bg-white w-1/3 flex flex-col">
-            <div className="flex-grow">
-            <Logo />
+            <div className="bg-white sticky top-0"><Logo /></div>
+            <div className="flex-grow overflow-y-auto h-full">
+            
             {Object.keys(onlinePeopleExclOurUser).map(userId => (
                 <Contact
-                key={userId}
-                id={userId}
-                online={true}
-                username={onlinePeopleExclOurUser[userId]}
-                onClick={() => setSelectedUserId(userId)}
-                selected={userId === selectedUserId}
+                    key={userId}
+                    id={userId}
+                    online={true}
+                    username={onlinePeopleExclOurUser[userId]}
+                    onClick={() => setSelectedUserId(userId)}
+                    selected={userId === selectedUserId}
                 />
                 ))}
                 {Object.keys(offlinePeople).map(userId => (  // Avatars will be created right above onlinePeople[userId]

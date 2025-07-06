@@ -4,6 +4,7 @@ export default function Avatar({userId,username, online}){
     const userIdBase10 = parseInt(userId,16);
     const colorIndex = userIdBase10 % colors.length;
     const color = colors[colorIndex];
+    console.log('Avatar props:', { online, username, userId });
 
     return(
         <div className = {"w-8 h-8 relative rounded-full flex items-center " + color}>
