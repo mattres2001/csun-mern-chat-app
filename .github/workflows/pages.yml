@@ -26,14 +26,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: yarn
+          cache-dependency-path: client/yarn.lock
 
       - name: Install client dependencies
         working-directory: ./client
-        run: npm install
+        run: yarn install --frozen-lockfile
 
       - name: Build client
         working-directory: ./client
-        run: npm run build
+        run: yarn build
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
